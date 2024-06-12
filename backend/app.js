@@ -1,12 +1,23 @@
+require('dotenv').config();
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const mongoose = require('mongoose');
+const debug = require('debug')('odin-blog-api:app');
 
 const indexRouter = require('./routes/index');
+const postsRouter = require('./routes/posts');
 
 const app = express();
+const mongodb = process.env.MONGODB;
+
+async function main() {
+  await mongoose.connect(mongodb);
+}
+
+main().catch((err) => debug(err));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -19,6 +30,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/posts', postsRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
