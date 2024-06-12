@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-// const { body, validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const Post = require('../models/post');
 const Comment = require('../models/comment');
 
@@ -20,7 +20,38 @@ exports.getPost = asyncHandler(async (req, res, next) => {
       .exec(),
   ]);
 
-  const response = { post, comments };
+  if (!post) {
+    const err = new Error('Post not found');
+    err.status = 404;
+    return next(err);
+  }
 
-  res.json(response);
+  const response = { post, comments };
+  return res.json(response);
 });
+
+exports.createPost = [
+  body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
+  body('text', 'Text must not be empty').trim().isLength({ min: 1 }).escape(),
+
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+
+    const post = new Post({
+      title: req.body.title,
+      timestamp: Date.now(),
+      text: req.body.text,
+      isPublished: req.body.isPublished === 'on',
+    });
+
+    const response = {
+      post,
+      errors: errors ? errors.array() : [],
+    };
+
+    if (errors.isEmpty()) {
+      await post.save();
+    }
+    res.json(response);
+  }),
+];
