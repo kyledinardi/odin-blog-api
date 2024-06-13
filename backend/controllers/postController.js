@@ -87,3 +87,18 @@ exports.updatePost = [
     return res.json(response);
   }),
 ];
+
+exports.deletePost = asyncHandler(async (req, res, next) => {
+  const [post, comments] = await Promise.all([
+    Post.findById(req.params.postId),
+    Comment.find({ post: req.params.postId }),
+  ]);
+
+  await Promise.all([
+    Post.findByIdAndDelete(req.params.postId),
+    Comment.deleteMany({ post: req.params.postId }),
+  ]);
+
+  const response = { post, comments };
+  return res.json(response);
+});

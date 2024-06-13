@@ -7,7 +7,6 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const debug = require('debug')('odin-blog-api:app');
 
-const indexRouter = require('./routes/index');
 const postsRouter = require('./routes/posts');
 
 const app = express();
@@ -29,7 +28,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
 app.use('/posts', postsRouter);
 
 // catch 404 and forward to error handler
