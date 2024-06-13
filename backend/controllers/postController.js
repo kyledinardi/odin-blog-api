@@ -55,3 +55,35 @@ exports.createPost = [
     res.json(response);
   }),
 ];
+
+exports.updatePost = [
+  body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
+  body('text', 'Text must not be empty').trim().isLength({ min: 1 }).escape(),
+
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    const post = await Post.findById(req.params.postId);
+
+    if (!post) {
+      const err = new Error('Post not found');
+      err.status = 404;
+      return next(err);
+    }
+
+    const response = {
+      post,
+      errors: errors ? errors.array() : [],
+    };
+
+    if (errors.isEmpty()) {
+      await Post.findByIdAndUpdate(post.id, {
+        title: req.body.title,
+        text: req.body.text,
+        isPublished: req.body.isPublished === 'on',
+        _id: req.params.postId,
+      });
+    }
+
+    return res.json(response);
+  }),
+];
