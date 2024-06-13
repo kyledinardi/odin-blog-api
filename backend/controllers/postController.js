@@ -44,14 +44,10 @@ exports.createPost = [
       isPublished: req.body.isPublished === 'on',
     });
 
-    const response = {
-      post,
-      errors: errors ? errors.array() : [],
-    };
-
     if (errors.isEmpty()) {
       await post.save();
     }
+    const response = { post, errors: errors ? errors.array() : [] };
     res.json(response);
   }),
 ];
@@ -62,7 +58,7 @@ exports.updatePost = [
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
-    const post = await Post.findById(req.params.postId);
+    const post = await Post.findById(req.params.postId).exec();
 
     if (!post) {
       const err = new Error('Post not found');
@@ -70,33 +66,29 @@ exports.updatePost = [
       return next(err);
     }
 
-    const response = {
-      post,
-      errors: errors ? errors.array() : [],
-    };
-
     if (errors.isEmpty()) {
       await Post.findByIdAndUpdate(post.id, {
         title: req.body.title,
         text: req.body.text,
         isPublished: req.body.isPublished === 'on',
         _id: req.params.postId,
-      });
+      }).exec();
     }
 
+    const response = { post, errors: errors ? errors.array() : [] };
     return res.json(response);
   }),
 ];
 
 exports.deletePost = asyncHandler(async (req, res, next) => {
   const [post, comments] = await Promise.all([
-    Post.findById(req.params.postId),
-    Comment.find({ post: req.params.postId }),
+    Post.findById(req.params.postId).exec(),
+    Comment.find({ post: req.params.postId }).exec(),
   ]);
 
   await Promise.all([
-    Post.findByIdAndDelete(req.params.postId),
-    Comment.deleteMany({ post: req.params.postId }),
+    Post.findByIdAndDelete(req.params.postId).exec(),
+    Comment.deleteMany({ post: req.params.postId }).exec(),
   ]);
 
   const response = { post, comments };

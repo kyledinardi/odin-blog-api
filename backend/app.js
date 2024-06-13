@@ -8,6 +8,8 @@ const mongoose = require('mongoose');
 const debug = require('debug')('odin-blog-api:app');
 
 const postsRouter = require('./routes/posts');
+const commentRouter = require('./routes/comments');
+const userRouter = require('./routes/users');
 
 const app = express();
 const mongodb = process.env.MONGODB;
@@ -29,6 +31,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/posts', postsRouter);
+app.use('/posts/:postId/comments', commentRouter);
+app.use('/users', userRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -43,7 +47,14 @@ app.use((err, req, res, next) => {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+
+  const response = {
+    message: err.message,
+    status: err.status || 500,
+    stack: err.stack,
+  };
+
+  res.json(response);
 });
 
 module.exports = app;
