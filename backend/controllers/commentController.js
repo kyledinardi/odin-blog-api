@@ -71,3 +71,8 @@ exports.updateComment = [
     return res.json(response);
   }),
 ];
+
+exports.deleteComment = asyncHandler(async (req, res, next) => {
+  await Comment.findByIdAndDelete(req.params.commentId).exec();
+  res.json(req.params.commentId);
+});

@@ -13,5 +13,6 @@ router.delete('/:postId', postController.deletePost);
 
 router.post('/:postId/comments', commentController.createComment);
 router.put('/:postId/comments/:commentId', commentController.updateComment);
+router.delete('/:postId/comments/:commentId', commentController.deleteComment)
 
 module.exports = router;
