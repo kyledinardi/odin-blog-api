@@ -32,7 +32,7 @@ exports.getPost = asyncHandler(async (req, res, next) => {
 
 exports.createPost = [
   body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
-  body('text', 'Text must not be empty').trim().isLength({ min: 1 }).escape(),
+  body('text', 'Post text must not be empty').trim().isLength({ min: 1 }).escape(),
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
@@ -54,7 +54,7 @@ exports.createPost = [
 
 exports.updatePost = [
   body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
-  body('text', 'Text must not be empty').trim().isLength({ min: 1 }).escape(),
+  body('text', 'Post text must not be empty').trim().isLength({ min: 1 }).escape(),
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
