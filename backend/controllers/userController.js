@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 exports.getUser = asyncHandler(async (req, res, next) => {
@@ -26,7 +27,7 @@ exports.createUser = [
       .custom(async (value) => {
         const emailInDatabase = await User.findOne({ email: value }).exec();
         if (emailInDatabase) {
-          throw new Error('A user already exists with this e-mail address');
+          throw new Error('A user already exists with this email address');
         }
       }),
   ),
@@ -41,15 +42,17 @@ exports.createUser = [
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     const user = new User({
       email: req.body.email,
-      password: req.body.password,
+      password: hashedPassword,
     });
-    
+
     if (errors.isEmpty()) {
       await user.save();
     }
+
     const response = { user, errors: errors ? errors.array() : [] };
     res.json(response);
   }),
