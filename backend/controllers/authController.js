@@ -1,19 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const User = require('../models/user');
-
-exports.getUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.userId);
-
-  if (!user) {
-    const err = new Error('User not found');
-    err.status = 404;
-    return next(err);
-  }
-
-  return res.json(user);
-});
 
 exports.createUser = [
   asyncHandler(
@@ -51,9 +41,60 @@ exports.createUser = [
 
     if (errors.isEmpty()) {
       await user.save();
+
+      req.login(user, { session: false }, (err2) => {
+        if (err2) {
+          return next(err2);
+        }
+
+        const payload = {
+          id: user.id,
+          email: user.email,
+          isAdmin: user.isAdmin,
+        };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+          expiresIn: '1d',
+        });
+
+        return res.json({ user, token });
+      });
     }
 
     const response = { user, errors: errors ? errors.array() : [] };
     res.json(response);
   }),
+];
+
+exports.login = (req, res, next) => [
+  body('email').trim().escape(),
+  body('password').trim().escape(),
+
+  passport.authenticate('local', { session: false }, (err, user, info) => {
+    if (err || !user) {
+      const error = new Error(info ? info.message : 'An error has occurred');
+      error.status = 403;
+      return next(error);
+    }
+
+    req.login(user, { session: false }, (err2) => {
+      if (err2) {
+        return next(err2);
+      }
+
+      const payload = {
+        id: user.id,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: '1d',
+      });
+
+      return res.json({ user, token });
+    });
+
+    return null;
+  })(req, res, next),
 ];

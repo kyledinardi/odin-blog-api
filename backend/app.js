@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./helper/passport');
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -7,8 +8,8 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const debug = require('debug')('odin-blog-api:app');
 
+const authRouter = require('./routes/auth');
 const postsRouter = require('./routes/posts');
-const userRouter = require('./routes/users');
 
 const app = express();
 const mongodb = process.env.MONGODB;
@@ -25,8 +26,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/auth', authRouter);
 app.use('/posts', postsRouter);
-app.use('/users', userRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -35,17 +36,14 @@ app.use((req, res, next) => {
 
 // error handler
 app.use((err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
   res.status(err.status || 500);
 
   const response = {
-    message: err.message,
-    status: err.status || 500,
-    stack: err.stack,
+    errors: {
+      message: err.message,
+      status: err.status || 500,
+      stack: err.stack,
+    },
   };
 
   res.json(response);
