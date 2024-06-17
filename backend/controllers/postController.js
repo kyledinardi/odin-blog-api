@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
+const passport = require('passport');
 const Post = require('../models/post');
 const Comment = require('../models/comment');
 
@@ -31,10 +32,21 @@ exports.getPost = asyncHandler(async (req, res, next) => {
 });
 
 exports.createPost = [
+  passport.authenticate('jwt', { session: false }),
+
   body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
-  body('text', 'Post text must not be empty').trim().isLength({ min: 1 }).escape(),
+  body('text', 'Post text must not be empty')
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
 
   asyncHandler(async (req, res, next) => {
+    if (!req.user.isAdmin) {
+      const err = new Error('You are not an admin');
+      err.status = 403;
+      return next(err);
+    }
+
     const errors = validationResult(req);
 
     const post = new Post({
@@ -48,17 +60,27 @@ exports.createPost = [
       await post.save();
     }
     const response = { post, errors: errors ? errors.array() : [] };
-    res.json(response);
+    return res.json(response);
   }),
 ];
 
 exports.updatePost = [
+  passport.authenticate('jwt', { session: false }),
   body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
-  body('text', 'Post text must not be empty').trim().isLength({ min: 1 }).escape(),
+  body('text', 'Post text must not be empty')
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
 
   asyncHandler(async (req, res, next) => {
+    if (!req.user.isAdmin) {
+      const err = new Error('You are not an admin');
+      err.status = 403;
+      return next(err);
+    }
+
     const errors = validationResult(req);
-    const post = await Post.findById(req.params.postId).exec();
+    let post = await Post.findById(req.params.postId).exec();
 
     if (!post) {
       const err = new Error('Post not found');
@@ -67,7 +89,7 @@ exports.updatePost = [
     }
 
     if (errors.isEmpty()) {
-      await Post.findByIdAndUpdate(post.id, {
+      post = await Post.findByIdAndUpdate(post.id, {
         title: req.body.title,
         text: req.body.text,
         isPublished: req.body.isPublished === 'on',
@@ -80,17 +102,27 @@ exports.updatePost = [
   }),
 ];
 
-exports.deletePost = asyncHandler(async (req, res, next) => {
-  const [post, comments] = await Promise.all([
-    Post.findById(req.params.postId).exec(),
-    Comment.find({ post: req.params.postId }).exec(),
-  ]);
+exports.deletePost = [
+  passport.authenticate('jwt', { session: false }),
 
-  await Promise.all([
-    Post.findByIdAndDelete(req.params.postId).exec(),
-    Comment.deleteMany({ post: req.params.postId }).exec(),
-  ]);
+  asyncHandler(async (req, res, next) => {
+    if (!req.user.isAdmin) {
+      const err = new Error('You are not an admin');
+      err.status = 403;
+      return next(err);
+    }
+    
+    const [post, comments] = await Promise.all([
+      Post.findById(req.params.postId).exec(),
+      Comment.find({ post: req.params.postId }).exec(),
+    ]);
 
-  const response = { post, comments };
-  return res.json(response);
-});
+    await Promise.all([
+      Post.findByIdAndDelete(req.params.postId).exec(),
+      Comment.deleteMany({ post: req.params.postId }).exec(),
+    ]);
+
+    const response = { post, comments };
+    return res.json(response);
+  }),
+];

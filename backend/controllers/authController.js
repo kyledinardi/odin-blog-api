@@ -41,26 +41,7 @@ exports.createUser = [
 
     if (errors.isEmpty()) {
       await user.save();
-
-      req.login(user, { session: false }, (err2) => {
-        if (err2) {
-          return next(err2);
-        }
-
-        const payload = {
-          id: user.id,
-          email: user.email,
-          isAdmin: user.isAdmin,
-        };
-
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {
-          expiresIn: '1d',
-        });
-
-        return res.json({ user, token });
-      });
     }
-
     const response = { user, errors: errors ? errors.array() : [] };
     res.json(response);
   }),
@@ -72,7 +53,7 @@ exports.login = (req, res, next) => [
 
   passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err || !user) {
-      const error = new Error(info ? info.message : 'An error has occurred');
+      const error = new Error(info ? info.message : 'User not found');
       error.status = 403;
       return next(error);
     }

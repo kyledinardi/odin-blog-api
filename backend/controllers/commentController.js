@@ -1,9 +1,12 @@
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
+const passport = require('passport');
 const Post = require('../models/post');
 const Comment = require('../models/comment');
 
 exports.createComment = [
+  passport.authenticate('jwt', { session: false }),
+
   body('text', 'Comment text must not be empty')
     .trim()
     .escape()
@@ -35,6 +38,8 @@ exports.createComment = [
 ];
 
 exports.updateComment = [
+  passport.authenticate('jwt', { session: false }),
+
   body('text', 'Comment text must not be empty')
     .trim()
     .escape()
@@ -42,37 +47,58 @@ exports.updateComment = [
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
+    const post = await Post.findById(req.params.postId).exec();
 
-    const [post, comment] = await Promise.all([
-      Post.findById(req.params.postId).exec(),
-      Comment.findById(req.params.commentId).exec(),
-    ]);
+    let comment = await Comment.findById(req.params.commentId)
+      .populate('user')
+      .exec();
 
-    if (!post) {
-      const err = new Error('Post not found');
+    if (!post || !comment) {
+      const err = new Error(`${!post ? 'Post' : 'Comment'} not found`);
       err.status = 404;
       return next(err);
     }
 
-    if (!comment) {
-      const err = new Error('Comment not found');
-      err.status = 404;
+    if (req.user.id !== comment.user.id) {
+      const err = new Error('You cannot edit this comment');
+      err.status = 403;
       return next(err);
     }
 
     if (errors.isEmpty) {
-      await Comment.findByIdAndUpdate(comment.id, {
+      comment = await Comment.findByIdAndUpdate(comment.id, {
         text: req.body.text,
         _id: req.params.commentId,
       });
     }
 
-    const response = { post, errors: errors ? errors.array() : [] };
+    const response = { comment, errors: errors ? errors.array() : [] };
     return res.json(response);
   }),
 ];
 
-exports.deleteComment = asyncHandler(async (req, res, next) => {
-  await Comment.findByIdAndDelete(req.params.commentId).exec();
-  res.json(req.params.commentId);
-});
+exports.deleteComment = [
+  passport.authenticate('jwt', { session: false }),
+
+  asyncHandler(async (req, res, next) => {
+    const [post, comment] = await Promise.all([
+      await Post.findById(req.params.postId).exec(),
+      await Comment.findById(req.params.commentId).exec(),
+    ]);
+
+    if (!post || !comment) {
+      const err = new Error(`${!post ? 'Post' : 'Comment'} not found`);
+      err.status = 404;
+      return next(err);
+    }
+
+    if (req.user.id !== comment.user) {
+      const err = new Error('You cannot delete this comment');
+      err.status = 403;
+      return next(err);
+    }
+
+    await Comment.findByIdAndDelete(req.params.commentId).exec();
+    return res.json(req.params.commentId);
+  }),
+];
