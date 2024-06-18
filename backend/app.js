@@ -2,11 +2,13 @@ require('dotenv').config();
 require('./helper/passport');
 const createError = require('http-errors');
 const express = require('express');
-const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 const debug = require('debug')('odin-blog-api:app');
+const compression = require('compression');
+const helmet = require('helmet');
+const RateLimit = require('express-rate-limit');
 
 const authRouter = require('./routes/auth');
 const postsRouter = require('./routes/posts');
@@ -20,11 +22,18 @@ async function main() {
 
 main().catch((err) => debug(err));
 
+const limiter = RateLimit({
+  windowsMs: 60 * 1000,
+  max: 100,
+});
+
+app.use(limiter);
+app.use(helmet());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(compression());
 
 app.use('/auth', authRouter);
 app.use('/posts', postsRouter);
