@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Post from './Post.jsx';
 
 function Home() {
@@ -19,13 +20,13 @@ function Home() {
         <>
           <h2>Posts</h2>
           {posts.map((post) => (
-            <Post
-              title={post.title}
-              timestamp={post.timestamp}
-              text={post.text}
-              _id={post._id}
-              key={post._id}
-            />
+            <Link key={post._id} to={`posts/${post._id}`}>
+              <Post
+                title={post.title}
+                timestamp={post.timestamp}
+                text={post.text}
+              />
+            </Link>
           ))}
         </>
       );

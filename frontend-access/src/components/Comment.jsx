@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-function Post({ title, timestamp, text }) {
+function Comment({ user, timestamp, text }) {
   const date = new Date(timestamp);
 
   const formattedDate = new Intl.DateTimeFormat('en-US', {
@@ -10,19 +10,18 @@ function Post({ title, timestamp, text }) {
 
   return (
     <div>
-      <h2>
-        {title}
+      <p>
+        {user}
         <span> {formattedDate}</span>
-      </h2>
+      </p>
       <p>{text}</p>
     </div>
   );
 }
 
-Post.propTypes = {
-  title: PropTypes.string,
+Comment.propTypes = {
+  user: PropTypes.string,
   timestamp: PropTypes.string,
   text: PropTypes.string,
 };
-
-export default Post;
+export default Comment;
