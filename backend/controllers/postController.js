@@ -111,7 +111,7 @@ exports.deletePost = [
       err.status = 403;
       return next(err);
     }
-    
+
     const [post, comments] = await Promise.all([
       Post.findById(req.params.postId).exec(),
       Comment.find({ post: req.params.postId }).exec(),

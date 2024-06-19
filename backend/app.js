@@ -9,6 +9,7 @@ const debug = require('debug')('odin-blog-api:app');
 const compression = require('compression');
 const helmet = require('helmet');
 const RateLimit = require('express-rate-limit');
+const cors = require('cors');
 
 const authRouter = require('./routes/auth');
 const postsRouter = require('./routes/posts');
@@ -27,6 +28,7 @@ const limiter = RateLimit({
   max: 100,
 });
 
+app.use(cors());
 app.use(limiter);
 app.use(helmet());
 app.use(logger('dev'));
