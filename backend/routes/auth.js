@@ -3,7 +3,7 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-router.post('/signUp', authController.createUser);
+router.post('/sign-up', authController.createUser);
 router.post('/login', authController.login);
 
 module.exports = router;

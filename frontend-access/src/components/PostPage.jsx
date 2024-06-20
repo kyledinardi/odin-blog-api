@@ -9,7 +9,7 @@ function PostPage() {
   const { postId } = useParams();
 
   useEffect(() => {
-    fetch(`http://localhost:3000/posts/${postId}`)
+    fetch(`http://localhost:3000/posts/${postId}`, { mode: 'cors' })
       .then((response) => response.json())
       .then((response) => {
         setPost(response.post);

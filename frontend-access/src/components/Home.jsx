@@ -16,20 +16,15 @@ function Home() {
 
   function renderPosts() {
     if (posts) {
-      return (
-        <>
-          <h2>Posts</h2>
-          {posts.map((post) => (
-            <Link key={post._id} to={`posts/${post._id}`}>
-              <Post
-                title={post.title}
-                timestamp={post.timestamp}
-                text={post.text}
-              />
-            </Link>
-          ))}
-        </>
-      );
+      return posts.map((post) => (
+        <Link key={post._id} to={`posts/${post._id}`}>
+          <Post
+            title={post.title}
+            timestamp={post.timestamp}
+            text={post.text}
+          />
+        </Link>
+      ));
     }
 
     return <h2>Loading posts...</h2>;
