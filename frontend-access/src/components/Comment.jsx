@@ -1,6 +1,16 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 
-function Comment({ user, timestamp, text }) {
+function Comment({
+  user,
+  commenter,
+  timestamp,
+  text,
+  postId,
+  commentId,
+  setComments,
+}) {
+  const [isEdit, setIsEdit] = useState(false);
   const date = new Date(timestamp);
 
   const formattedDate = new Intl.DateTimeFormat('en-US', {
@@ -8,20 +18,104 @@ function Comment({ user, timestamp, text }) {
     timeStyle: 'short',
   }).format(date);
 
+  async function updateComment(e) {
+    e.preventDefault();
+    try {
+      const response = await fetch(
+        `http://localhost:3000/posts/${postId}/comments/${commentId}`,
+        {
+          method: 'PUT',
+          mode: 'cors',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: e.target[0].value }),
+        },
+      );
+
+      const responseJson = await response.json();
+      const { comments } = responseJson;
+      setComments(comments);
+      setIsEdit(!isEdit);
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
+
+  async function deleteComment() {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/posts/${postId}/comments/${commentId}`,
+        {
+          method: 'DELETE',
+          mode: 'cors',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      const comments = await response.json();
+      setComments(comments);
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
+
+  function renderButtons() {
+    if (commenter.email === user.email || user.isAdmin) {
+      return (
+        <div>
+          {commenter.email === user.email && (
+            <button onClick={() => setIsEdit(!isEdit)}>
+              {isEdit ? 'Cancel' : 'Edit'}
+            </button>
+          )}
+          <button onClick={() => deleteComment()}>Delete</button>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
   return (
     <div>
       <p>
-        {user}
+        {commenter.email}
         <span> {formattedDate}</span>
       </p>
-      <p>{text}</p>
+      {isEdit ? (
+        <div>
+          <form onSubmit={(e) => updateComment(e)}>
+            <textarea
+              name=''
+              id=''
+              cols='30'
+              rows='10'
+              required
+              defaultValue={text}
+            ></textarea>
+            <button type='submit'>Update Comment</button>
+          </form>
+        </div>
+      ) : (
+        <p>{text}</p>
+      )}
+      {renderButtons()}
     </div>
   );
 }
 
 Comment.propTypes = {
-  user: PropTypes.string,
+  user: PropTypes.object,
+  commenter: PropTypes.object,
   timestamp: PropTypes.string,
   text: PropTypes.string,
+  postId: PropTypes.string,
+  commentId: PropTypes.string,
+  setComments: PropTypes.func,
 };
 export default Comment;

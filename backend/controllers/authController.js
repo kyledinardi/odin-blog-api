@@ -79,3 +79,9 @@ exports.login = (req, res, next) => [
     return null;
   })(req, res, next),
 ];
+
+exports.getUser = (req, res, next) => {
+  console.log(req.body.token);
+  const user = jwt.verify(req.body.token, process.env.JWT_SECRET);
+  res.json(user);
+};

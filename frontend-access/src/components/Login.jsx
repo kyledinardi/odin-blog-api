@@ -4,7 +4,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 function Login() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const setIsAuth = useOutletContext();
+  const [, setIsAuth] = useOutletContext();
 
   async function submit(e) {
     e.preventDefault();
@@ -23,12 +23,12 @@ function Login() {
       });
 
       const responseJson = await response.json();
+      localStorage.setItem('token', responseJson.token);
       e.target.reset();
 
       if (responseJson.error) {
         setError(responseJson.error);
       } else {
-        localStorage.setItem('token', responseJson.token);
         setIsAuth(true);
         navigate('/');
       }

@@ -32,7 +32,9 @@ exports.createComment = [
     if (errors.isEmpty()) {
       await comment.save();
     }
-    const response = { comment, errors: errors ? errors.array() : [] };
+
+    const comments = await Comment.find({ post: req.params.postId }).populate('user').exec();
+    const response = { comments, errors: errors ? errors.array() : [] };
     return res.json(response);
   }),
 ];
@@ -72,7 +74,8 @@ exports.updateComment = [
       });
     }
 
-    const response = { comment, errors: errors ? errors.array() : [] };
+    const comments = await Comment.find({ post: req.params.postId }).populate('user').exec();
+    const response = { comments, errors: errors ? errors.array() : [] };
     return res.json(response);
   }),
 ];
@@ -83,7 +86,7 @@ exports.deleteComment = [
   asyncHandler(async (req, res, next) => {
     const [post, comment] = await Promise.all([
       await Post.findById(req.params.postId).exec(),
-      await Comment.findById(req.params.commentId).exec(),
+      await Comment.findById(req.params.commentId).populate('user').exec(),
     ]);
 
     if (!post || !comment) {
@@ -92,13 +95,14 @@ exports.deleteComment = [
       return next(err);
     }
 
-    if (req.user.id !== comment.user) {
+    if (req.user.id !== comment.user.id && !req.user.isAdmin) {
       const err = new Error('You cannot delete this comment');
       err.status = 403;
       return next(err);
     }
 
     await Comment.findByIdAndDelete(req.params.commentId).exec();
-    return res.json(req.params.commentId);
+    const comments = await Comment.find({ post: req.params.postId }).populate('user').exec();
+    return res.json(comments);
   }),
 ];

@@ -12,7 +12,11 @@ function Navbar({ isAuth, setIsAuth }) {
 
   function renderAuth() {
     if (isAuth) {
-      return <a href='#' onClick={() => logout()}>Log Out</a>;
+      return (
+        <a href='#' onClick={() => logout()}>
+          Log Out
+        </a>
+      );
     }
 
     return (
