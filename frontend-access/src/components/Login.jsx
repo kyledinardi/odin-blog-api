@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import styles from '../style/Form.module.css'
 
 function Login() {
   const [error, setError] = useState(null);
@@ -53,10 +54,12 @@ function Login() {
     <>
       <h1>Log In</h1>
       <form onSubmit={(e) => submit(e)}>
-        <label htmlFor='email'>Email </label>
-        <input type='email' name='email' id='email' />
-        <label htmlFor='password'>Password </label>
-        <input type='password' name='password' id='password' />
+        <div className={styles.fields}>
+          <label htmlFor='email'>Email</label>
+          <input type='email' name='email' id='email' />
+          <label htmlFor='password'>Password</label>
+          <input type='password' name='password' id='password' />
+        </div>
         <button type='submit'>Log in</button>
       </form>
       <>{renderErrors()}</>

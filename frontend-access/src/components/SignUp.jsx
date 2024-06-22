@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styles from '../style/Form.module.css'
 
 function SignUp() {
   const [errors, setErrors] = useState(null);
@@ -53,17 +54,19 @@ function SignUp() {
     <>
       <h1>Sign Up</h1>
       <form onSubmit={(e) => submit(e)}>
-        <label htmlFor='email'>Email </label>
-        <input type='email' name='email' id='email' required />
-        <label htmlFor='password'>Password </label>
-        <input type='password' name='password' id='password' required />
-        <label htmlFor='passwordConfirmation'>Confirm Password </label>
-        <input
-          type='password'
-          name='passwordConfirmation'
-          id='passwordConfirmation'
-          required
-        />
+        <div className={styles.fields}>
+          <label htmlFor='email'>Email </label>
+          <input type='email' name='email' id='email' required />
+          <label htmlFor='password'>Password </label>
+          <input type='password' name='password' id='password' required />
+          <label htmlFor='passwordConfirmation'>Confirm Password </label>
+          <input
+            type='password'
+            name='passwordConfirmation'
+            id='passwordConfirmation'
+            required
+          />
+        </div>
         <button type='submit'>Sign Up</button>
       </form>
       <>{renderErrors()}</>

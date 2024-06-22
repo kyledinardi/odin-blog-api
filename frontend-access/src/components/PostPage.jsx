@@ -21,22 +21,24 @@ function PostPage() {
         throw new Error(error);
       });
 
-    fetch('http://localhost:3000/auth/user', {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token: localStorage.getItem('token') }),
-    })
-      .then((response) => response.json())
-      .then((response) => {
-        setUser(response);
+    if (localStorage.getItem('token')) {
+      fetch('http://localhost:3000/auth/user', {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: localStorage.getItem('token') }),
       })
-      .catch((error) => {
-        throw new Error(error);
-      });
+        .then((response) => response.json())
+        .then((response) => {
+          setUser(response);
+        })
+        .catch((error) => {
+          throw new Error(error);
+        });
+    }
   }, [postId]);
 
   async function submitComment(e) {
@@ -118,10 +120,10 @@ function PostPage() {
   }
 
   return (
-    <div>
+    <>
       <div>{renderPost()}</div>
       <div>{renderComments()}</div>
-    </div>
+    </>
   );
 }
 

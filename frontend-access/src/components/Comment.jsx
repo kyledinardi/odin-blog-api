@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import styles from '../style/Comment.module.css';
 
 function Comment({
   user,
@@ -82,11 +83,9 @@ function Comment({
   }
 
   return (
-    <div>
-      <p>
-        {commenter.email}
-        <span> {formattedDate}</span>
-      </p>
+    <div className={styles.comment}>
+      <h4 className={styles.email}>{commenter.email}</h4>
+      <p className={styles.timestamp}> {formattedDate}</p>
       {isEdit ? (
         <div>
           <form onSubmit={(e) => updateComment(e)}>

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import styles from '../style/Post.module.css';
 
 function Post({ title, timestamp, text }) {
   const date = new Date(timestamp);
@@ -9,13 +10,11 @@ function Post({ title, timestamp, text }) {
   }).format(date);
 
   return (
-    <div>
-      <h2>
-        {title}
-        <span> {formattedDate}</span>
-      </h2>
-      <p>{text}</p>
-    </div>
+      <div className={styles.post}>
+        <h2 className={styles.title}>{title}</h2>
+        <p className={styles.timestamp}> ({formattedDate})</p>
+        <p>{text}</p>
+      </div>
   );
 }
 

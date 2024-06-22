@@ -1,0 +1,18 @@
+.comment {
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.email,
+.timestamp {
+  text-align: center;
+}
+
+.email {
+  margin-top: 0;
+}
+
+.timestamp {
+  font-size: 0.8rem;
+}

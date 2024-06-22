@@ -57,6 +57,7 @@ app.use((err, req, res, next) => {
     },
   };
 
+  debug(response);
   res.json(response);
 });
 

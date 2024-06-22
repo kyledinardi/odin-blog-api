@@ -9,7 +9,9 @@ function App() {
   return (
     <>
       <Navbar isAuth={isAuth} setIsAuth={setIsAuth} />
-      <Outlet context={[isAuth, setIsAuth]} />
+      <main>
+        <Outlet context={[isAuth, setIsAuth]} />
+      </main>
     </>
   );
 }
