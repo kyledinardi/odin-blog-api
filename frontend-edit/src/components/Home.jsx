@@ -20,6 +20,28 @@ function Home() {
     }
   }, [isAuth, navigate]);
 
+  async function createPost(e) {
+    e.preventDefault();
+
+    const response = await fetch('http://localhost:3000/posts', {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: e.target[0].value,
+        isPublished: e.target[1].checked,
+        text: e.target[2].value,
+      }),
+    });
+
+    const responseJson = await response.json();
+    setPosts(responseJson.posts);
+    e.target.reset();
+  }
+
   function renderPosts() {
     if (posts) {
       return posts.map((post) => (
@@ -40,7 +62,16 @@ function Home() {
 
   return (
     <>
-      <h1>Posts</h1>
+      <h2>New Post</h2>
+      <form onSubmit={(e) => createPost(e)}>
+        <label htmlFor='title'>Title</label>
+        <input type='text' name='title' id='title' required />
+        <label htmlFor='isPublished'>Published</label>
+        <input type='checkbox' name='isPublished' id='isPublished' />
+        <textarea name='text' id='text' cols='30' rows='10' required></textarea>
+        <button type='submit'>Create Post</button>
+      </form>
+      <h2>Posts</h2>
       {renderPosts()}
     </>
   );

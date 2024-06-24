@@ -38,25 +38,13 @@ function Login() {
       } else if (!responseJson.user.isAdmin) {
         setError({ message: 'You must be an Admin to login' });
       } else {
-        setError(false)
+        setError(false);
         setIsAuth(true);
         navigate('/');
       }
     } catch (err) {
       console.error(err);
     }
-  }
-
-  function renderErrors() {
-    if (error) {
-      return (
-        <div>
-          <p key={error.message}>{error.message}</p>
-        </div>
-      );
-    }
-
-    return null;
   }
 
   return (
@@ -71,7 +59,7 @@ function Login() {
         </div>
         <button type='submit'>Log in</button>
       </form>
-      <>{renderErrors()}</>
+      {error && <p>{error.message}</p>}
     </>
   );
 }

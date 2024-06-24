@@ -59,7 +59,9 @@ exports.createPost = [
     if (errors.isEmpty()) {
       await post.save();
     }
-    const response = { post, errors: errors ? errors.array() : [] };
+
+    const posts = await Post.find().exec();
+    const response = { posts, errors: errors ? errors.array() : [] };
     return res.json(response);
   }),
 ];

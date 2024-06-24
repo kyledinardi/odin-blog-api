@@ -103,7 +103,7 @@ function Post({
   return (
     <div className={styles.post}>
       <h2 className={styles.title}>{title}</h2>
-      <p className={styles.timestamp}> ({formattedDate})</p>
+      <p className={styles.timestamp}> {formattedDate}</p>
       <p>{isPublished ? 'Published' : 'Not Published'}</p>
       <p>{text}</p>
       {!isHome && (
