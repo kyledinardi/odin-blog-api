@@ -5,7 +5,7 @@ const Post = require('../models/post');
 const Comment = require('../models/comment');
 
 exports.postList = asyncHandler(async (req, res, next) => {
-  const posts = await Post.find({ isPublished: true })
+  const posts = await Post.find()
     .sort({ timestamp: 1 })
     .exec();
 
@@ -92,9 +92,11 @@ exports.updatePost = [
       post = await Post.findByIdAndUpdate(post.id, {
         title: req.body.title,
         text: req.body.text,
-        isPublished: req.body.isPublished === 'on',
+        isPublished: req.body.isPublished,
         _id: req.params.postId,
-      }).exec();
+      }).exec(); 
+
+      post = await Post.findById(post.id).exec();
     }
 
     const response = { post, errors: errors ? errors.array() : [] };

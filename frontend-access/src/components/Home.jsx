@@ -8,7 +8,10 @@ function Home() {
   useEffect(() => {
     fetch('http://localhost:3000/posts', { mode: 'cors' })
       .then((response) => response.json())
-      .then((response) => setPosts(response))
+      .then((response) => {
+        const publishedPosts = response.filter((post) => post.isPublished);
+        setPosts(publishedPosts);
+      })
       .catch((error) => {
         throw new Error(error);
       });

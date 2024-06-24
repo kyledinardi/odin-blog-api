@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import styles from '../style/Form.module.css'
+import styles from '../style/Form.module.css';
 
 function Login() {
   const [error, setError] = useState(null);
@@ -35,7 +35,10 @@ function Login() {
 
       if (responseJson.error) {
         setError(responseJson.error);
+      } else if (!responseJson.user.isAdmin) {
+        setError({ message: 'You must be an Admin to login' });
       } else {
+        setError(false)
         setIsAuth(true);
         navigate('/');
       }
