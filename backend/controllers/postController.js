@@ -89,7 +89,7 @@ exports.updatePost = [
     }
 
     if (errors.isEmpty()) {
-      post = await Post.findByIdAndUpdate(post.id, {
+      await Post.findByIdAndUpdate(post.id, {
         title: req.body.title,
         text: req.body.text,
         isPublished: req.body.isPublished,

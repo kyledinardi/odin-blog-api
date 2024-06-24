@@ -28,6 +28,8 @@ function Home() {
             title={post.title}
             timestamp={post.timestamp}
             text={post.text}
+            isPublished={post.isPublished}
+            isHome={true}
           />
         </Link>
       ));

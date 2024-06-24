@@ -27,6 +27,7 @@ function PostPage() {
           isPublished={post.isPublished}
           postId={postId}
           setPost={(p) => setPost(p)}
+          isHome={false}
         />
       );
     }
