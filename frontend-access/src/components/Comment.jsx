@@ -14,6 +14,14 @@ function Comment({
   const [isEdit, setIsEdit] = useState(false);
   const date = new Date(timestamp);
 
+  function decodeHTMLEntities(html) {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
+  const decodedText = decodeHTMLEntities(text);
+
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     dateStyle: 'short',
     timeStyle: 'short',
@@ -95,13 +103,13 @@ function Comment({
               cols='30'
               rows='10'
               required
-              defaultValue={text}
+              defaultValue={decodedText}
             ></textarea>
             <button type='submit'>Update Comment</button>
           </form>
         </div>
       ) : (
-        <p>{text}</p>
+        <p>{decodedText}</p>
       )}
       {renderButtons()}
     </div>
@@ -117,4 +125,5 @@ Comment.propTypes = {
   commentId: PropTypes.string,
   setComments: PropTypes.func,
 };
+
 export default Comment;

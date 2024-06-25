@@ -1,0 +1,48 @@
+body {
+  margin: 0;
+  background-color: #658147;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+nav,
+main {
+  background-color: #e7f0dc;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  background-color: #597445;
+  padding: 20px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.2rem;
+}
+
+main {
+  width: max-content;
+  margin: 30px auto;
+  border-radius: 10px;
+  padding: 30px;
+  max-width: 600px;
+}
+
+main a {
+  text-decoration: none;
+  color: black;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+textarea {
+  font-family: Arial, Helvetica, sans-serif;
+  resize: none;
+}

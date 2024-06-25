@@ -10,22 +10,20 @@ function Navbar({ isAuth, setIsAuth }) {
     navigate('/login');
   }
 
-  function renderAuth() {
-    if (isAuth) {
-      return (
+  if (isAuth) {
+    return (
+      <nav>
+        <Link to='/'>Home</Link>
         <a href='#' onClick={() => logout()}>
           Log Out
         </a>
-      );
-    }
-
-    return <Link to='/login'>Log In</Link>;
+      </nav>
+    );
   }
 
   return (
     <nav>
-      <Link to='/'>Home</Link>
-      {renderAuth()}
+      <Link to='/login'>Log In</Link>
     </nav>
   );
 }

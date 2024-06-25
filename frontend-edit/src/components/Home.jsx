@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, Link } from 'react-router-dom';
 import Post from './Post.jsx';
+import formStyles from '../style/Form.module.css';
 
 function Home() {
   const [posts, setPosts] = useState(null);
@@ -64,10 +65,12 @@ function Home() {
     <>
       <h2>New Post</h2>
       <form onSubmit={(e) => createPost(e)}>
-        <label htmlFor='title'>Title</label>
-        <input type='text' name='title' id='title' required />
-        <label htmlFor='isPublished'>Published</label>
-        <input type='checkbox' name='isPublished' id='isPublished' />
+        <div className={formStyles.fields}>
+          <label htmlFor='title'>Title</label>
+          <input type='text' name='title' id='title' required />
+          <label htmlFor='isPublished'>Published</label>
+          <input type='checkbox' name='isPublished' id='isPublished' />
+        </div>
         <textarea name='text' id='text' cols='30' rows='10' required></textarea>
         <button type='submit'>Create Post</button>
       </form>

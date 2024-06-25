@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import styles from '../style/Post.module.css';
+import formStyles from '../style/Form.module.css';
 
 function Post({
   title,
@@ -16,6 +17,15 @@ function Post({
   const [isDeleting, setIsDeleting] = useState(false);
   const date = new Date(timestamp);
   const navigate = useNavigate();
+
+  function decodeHTMLEntities(html) {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
+  const decodedTitle = decodeHTMLEntities(title);
+  const decodedText = decodeHTMLEntities(text);
 
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     dateStyle: 'short',
@@ -69,28 +79,30 @@ function Post({
   if (isEdit) {
     return (
       <form onSubmit={(e) => updatePost(e)}>
-        <label htmlFor='title'>Title</label>
-        <input
-          type='text'
-          name='title'
-          id='title'
-          required
-          defaultValue={title}
-        />
-        <label htmlFor='isPublished'>Published</label>
-        <input
-          type='checkbox'
-          name='isPublished'
-          id='isPublished'
-          defaultChecked={isPublished}
-        />
+        <div className={formStyles.fields}>
+          <label htmlFor='title'>Title</label>
+          <input
+            type='text'
+            name='title'
+            id='title'
+            required
+            defaultValue={decodedTitle}
+          />
+          <label htmlFor='isPublished'>Published</label>
+          <input
+            type='checkbox'
+            name='isPublished'
+            id='isPublished'
+            defaultChecked={isPublished}
+          />
+        </div>
         <textarea
           name='text'
           id='text'
           cols='30'
           rows='10'
           required
-          defaultValue={text}
+          defaultValue={decodedText}
         ></textarea>
         <button type='button' onClick={() => setIsEdit(!isEdit)}>
           Cancel
@@ -102,10 +114,10 @@ function Post({
 
   return (
     <div className={styles.post}>
-      <h2 className={styles.title}>{title}</h2>
+      <h2 className={styles.title}>{decodedTitle}</h2>
       <p className={styles.timestamp}> {formattedDate}</p>
       <p>{isPublished ? 'Published' : 'Not Published'}</p>
-      <p>{text}</p>
+      <p>{decodedText}</p>
       {!isHome && (
         <div>
           <button onClick={() => setIsEdit(true)}>Edit</button>

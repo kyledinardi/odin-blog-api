@@ -1,5 +1,5 @@
 {
-  "name": "odin-blog-api",
+  "name": "odin-blog-api-backend",
   "version": "0.0.0",
   "engines": {
     "node": ">=20.14.0"
