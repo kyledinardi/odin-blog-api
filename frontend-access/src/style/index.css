@@ -28,7 +28,7 @@ main {
   margin: 30px auto;
   border-radius: 10px;
   padding: 30px;
-  max-width: 600px;
+  width: min(600px, 90vw);
 }
 
 main a {
@@ -45,4 +45,18 @@ h1 {
 textarea {
   font-family: Arial, Helvetica, sans-serif;
   resize: none;
+}
+
+.comments {
+  width: 360px;
+  margin: 0 auto;
+}
+
+.comments h3 {
+  text-align: center;
+}
+
+.comments form {
+  margin: 0 auto;
+  width: max-content
 }

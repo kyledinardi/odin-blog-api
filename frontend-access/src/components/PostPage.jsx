@@ -122,7 +122,7 @@ function PostPage() {
   return (
     <>
       <div>{renderPost()}</div>
-      <div>{renderComments()}</div>
+      <div className='comments'>{renderComments()}</div>
     </>
   );
 }
