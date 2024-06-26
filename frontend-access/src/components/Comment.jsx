@@ -74,17 +74,19 @@ function Comment({
   }
 
   function renderButtons() {
-    if (commenter.email === user.email || user.isAdmin) {
-      return (
-        <div>
-          {commenter.email === user.email && (
-            <button onClick={() => setIsEdit(!isEdit)}>
-              {isEdit ? 'Cancel' : 'Edit'}
-            </button>
-          )}
-          <button onClick={() => deleteComment()}>Delete</button>
-        </div>
-      );
+    if (commenter && user) {
+      if (commenter.email === user.email || user.isAdmin) {
+        return (
+          <div>
+            {commenter.email === user.email && (
+              <button onClick={() => setIsEdit(!isEdit)}>
+                {isEdit ? 'Cancel' : 'Edit'}
+              </button>
+            )}
+            <button onClick={() => deleteComment()}>Delete</button>
+          </div>
+        );
+      }
     }
 
     return null;
