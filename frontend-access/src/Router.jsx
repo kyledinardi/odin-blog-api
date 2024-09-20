@@ -9,13 +9,15 @@ const routes = [
   {
     path: '/',
     element: <App />,
+    errorElement: <ErrorPage />,
+
     children: [
       { index: true, element: <Home /> },
       { path: 'posts/:postId', element: <PostPage /> },
       { path: 'login', element: <Login /> },
       { path: 'sign-up', element: <SignUp /> },
     ],
-    errorElement: <ErrorPage />,
+
   },
 ];
 
