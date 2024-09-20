@@ -8,19 +8,16 @@ function Home() {
   useEffect(() => {
     fetch('http://localhost:3000/posts', { mode: 'cors' })
       .then((response) => response.json())
+      
       .then((response) => {
-        const publishedPosts = response.filter((post) => post.isPublished);
-        setPosts(publishedPosts);
-      })
-      .catch((error) => {
-        throw new Error(error);
+        setPosts(response.posts.filter((post) => post.isPublished));
       });
   }, []);
 
   function renderPosts() {
     if (posts) {
       return posts.map((post) => (
-        <Link key={post._id} to={`posts/${post._id}`}>
+        <Link key={post.id} to={`posts/${post.id}`}>
           <Post
             title={post.title}
             timestamp={post.timestamp}

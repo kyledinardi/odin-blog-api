@@ -1,20 +1,18 @@
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
 const passport = require('passport');
-const Post = require('../models/post');
-const Comment = require('../models/comment');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 exports.createComment = [
   passport.authenticate('jwt', { session: false }),
-
-  body('text', 'Comment text must not be empty')
-    .trim()
-    .escape()
-    .isLength({ min: 1 }),
+  body('text', 'Comment text must not be empty').trim().notEmpty(),
 
   asyncHandler(async (req, res, next) => {
-    const errors = validationResult(req);
-    const post = await Post.findById(req.params.postId).exec();
+    const post = await prisma.post.findUnique({
+      where: { id: parseInt(req.params.postId, 10) },
+    });
 
     if (!post) {
       const err = new Error('Post not found');
@@ -22,38 +20,50 @@ exports.createComment = [
       return next(err);
     }
 
-    const comment = new Comment({
-      user: req.user.id,
-      post: req.params.postId,
-      timestamp: Date.now(),
+    const comment = {
       text: req.body.text,
-    });
+    };
 
-    if (errors.isEmpty()) {
-      await comment.save();
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty) {
+      return res.json({ comment, errors: errors.array() });
     }
 
-    const comments = await Comment.find({ post: req.params.postId }).populate('user').exec();
-    const response = { comments, errors: errors ? errors.array() : [] };
-    return res.json(response);
+    const newComment = await prisma.comment.create({ data: comment });
+
+    const [user] = await Promise.all([
+      prisma.user.update({
+        where: { id: parseInt(req.user.id, 10) },
+        data: { comments: { connect: { id: newComment.id } } },
+      }),
+
+      prisma.post.update({
+        where: { id: post.id },
+        data: { comments: { connect: { id: newComment.id } } },
+      }),
+    ]);
+
+    newComment.user = user;
+
+    return res.json({ comment: newComment, errors: null });
   }),
 ];
 
 exports.updateComment = [
   passport.authenticate('jwt', { session: false }),
-
-  body('text', 'Comment text must not be empty')
-    .trim()
-    .escape()
-    .isLength({ min: 1 }),
+  body('text', 'Comment text must not be empty').trim().notEmpty(),
 
   asyncHandler(async (req, res, next) => {
-    const errors = validationResult(req);
-    const post = await Post.findById(req.params.postId).exec();
+    const [post, comment] = await Promise.all([
+      prisma.post.findUnique({
+        where: { id: parseInt(req.params.postId, 10) },
+      }),
 
-    let comment = await Comment.findById(req.params.commentId)
-      .populate('user')
-      .exec();
+      prisma.comment.findUnique({
+        where: { id: parseInt(req.params.commentId, 10) },
+      }),
+    ]);
 
     if (!post || !comment) {
       const err = new Error(`${!post ? 'Post' : 'Comment'} not found`);
@@ -61,22 +71,25 @@ exports.updateComment = [
       return next(err);
     }
 
-    if (req.user.id !== comment.user.id) {
+    if (req.user.id !== comment.userId) {
       const err = new Error('You cannot edit this comment');
       err.status = 403;
       return next(err);
     }
 
-    if (errors.isEmpty) {
-      comment = await Comment.findByIdAndUpdate(comment.id, {
-        text: req.body.text,
-        _id: req.params.commentId,
-      });
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty) {
+      return res.json({ comment, errors: errors.array() });
     }
 
-    const comments = await Comment.find({ post: req.params.postId }).populate('user').exec();
-    const response = { comments, errors: errors ? errors.array() : [] };
-    return res.json(response);
+    const updatedComment = await prisma.comment.update({
+      where: { id: comment.id },
+      data: { text: req.body.text },
+      include: { user: true },
+    });
+
+    return res.json({ comment: updatedComment, errors: null });
   }),
 ];
 
@@ -85,8 +98,14 @@ exports.deleteComment = [
 
   asyncHandler(async (req, res, next) => {
     const [post, comment] = await Promise.all([
-      await Post.findById(req.params.postId).exec(),
-      await Comment.findById(req.params.commentId).populate('user').exec(),
+      prisma.post.findUnique({
+        where: { id: parseInt(req.params.postId, 10) },
+      }),
+
+      prisma.comment.findUnique({
+        where: { id: parseInt(req.params.commentId, 10) },
+        include: { user: true },
+      }),
     ]);
 
     if (!post || !comment) {
@@ -101,8 +120,10 @@ exports.deleteComment = [
       return next(err);
     }
 
-    await Comment.findByIdAndDelete(req.params.commentId).exec();
-    const comments = await Comment.find({ post: req.params.postId }).populate('user').exec();
-    return res.json(comments);
+    const deletedComment = await prisma.comment.delete({
+      where: { id: comment.id },
+    });
+
+    return res.json({ comment: deletedComment });
   }),
 ];

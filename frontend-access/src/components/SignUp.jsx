@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from '../style/Form.module.css'
+import styles from '../style/Form.module.css';
 
 function SignUp() {
   const [errors, setErrors] = useState(null);
@@ -9,30 +9,25 @@ function SignUp() {
   async function submit(e) {
     e.preventDefault();
 
-    const data = {
-      email: e.target[0].value,
-      password: e.target[1].value,
-      passwordConfirmation: e.target[2].value,
-    };
+    const response = await fetch('http://localhost:3000/auth/sign-up', {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      
+      body: JSON.stringify({
+        email: e.target[0].value,
+        password: e.target[1].value,
+        passwordConfirmation: e.target[2].value,
+      }),
+    });
 
-    try {
-      const response = await fetch('http://localhost:3000/auth/sign-up', {
-        method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+    const responseJson = await response.json();
+    e.target.reset();
 
-      const responseJson = await response.json();
-      e.target.reset();
-
-      if (responseJson.errors.length > 0) {
-        setErrors(responseJson.errors);
-      } else {
-        navigate('/login');
-      }
-    } catch (err) {
-      throw new Error(err);
+    if (responseJson.errors) {
+      setErrors(responseJson.errors);
+    } else {
+      navigate('/login');
     }
   }
 

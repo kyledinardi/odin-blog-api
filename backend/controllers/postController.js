@@ -1,24 +1,26 @@
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
 const passport = require('passport');
-const Post = require('../models/post');
-const Comment = require('../models/comment');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 exports.postList = asyncHandler(async (req, res, next) => {
-  const posts = await Post.find()
-    .sort({ timestamp: 1 })
-    .exec();
-
-  res.json(posts);
+  const posts = await prisma.post.findMany({ orderBy: { timestamp: 'desc' } });
+  return res.json({ posts });
 });
 
 exports.getPost = asyncHandler(async (req, res, next) => {
   const [post, comments] = await Promise.all([
-    Post.findById(req.params.postId).exec(),
-    Comment.find({ post: req.params.postId })
-      .populate('user')
-      .sort({ timestamp: 1 })
-      .exec(),
+    prisma.post.findUnique({
+      where: { id: parseInt(req.params.postId, 10) },
+      include: { comments: true },
+    }),
+
+    prisma.comment.findMany({
+      where: { postId: parseInt(req.params.postId, 10) },
+      include: { user: true },
+    }),
   ]);
 
   if (!post) {
@@ -27,18 +29,13 @@ exports.getPost = asyncHandler(async (req, res, next) => {
     return next(err);
   }
 
-  const response = { post, comments };
-  return res.json(response);
+  return res.json({ post, comments });
 });
 
 exports.createPost = [
   passport.authenticate('jwt', { session: false }),
-
-  body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
-  body('text', 'Post text must not be empty')
-    .trim()
-    .isLength({ min: 1 })
-    .escape(),
+  body('title', 'Title must not be empty').trim().notEmpty(),
+  body('text', 'Post text must not be empty').trim().notEmpty(),
 
   asyncHandler(async (req, res, next) => {
     if (!req.user.isAdmin) {
@@ -49,30 +46,25 @@ exports.createPost = [
 
     const errors = validationResult(req);
 
-    const post = new Post({
+    const post = {
       title: req.body.title,
-      timestamp: Date.now(),
       text: req.body.text,
-      isPublished: req.body.isPublished === 'on',
-    });
+      isPublished: req.body.isPublished,
+    };
 
-    if (errors.isEmpty()) {
-      await post.save();
+    if (!errors.isEmpty()) {
+      return res.json({ post, errors: errors.array() });
     }
 
-    const posts = await Post.find().exec();
-    const response = { posts, errors: errors ? errors.array() : [] };
-    return res.json(response);
+    const newPost = await prisma.post.create({ data: post });
+    return res.json({ post: newPost, errors: null });
   }),
 ];
 
 exports.updatePost = [
   passport.authenticate('jwt', { session: false }),
-  body('title', 'Title must not be empty').trim().isLength({ min: 1 }).escape(),
-  body('text', 'Post text must not be empty')
-    .trim()
-    .isLength({ min: 1 })
-    .escape(),
+  body('title', 'Title must not be empty').trim().notEmpty(),
+  body('text', 'Post text must not be empty').trim().notEmpty(),
 
   asyncHandler(async (req, res, next) => {
     if (!req.user.isAdmin) {
@@ -81,8 +73,9 @@ exports.updatePost = [
       return next(err);
     }
 
-    const errors = validationResult(req);
-    let post = await Post.findById(req.params.postId).exec();
+    const post = await prisma.post.findUnique({
+      where: { id: parseInt(req.params.postId, 10) },
+    });
 
     if (!post) {
       const err = new Error('Post not found');
@@ -90,19 +83,23 @@ exports.updatePost = [
       return next(err);
     }
 
-    if (errors.isEmpty()) {
-      await Post.findByIdAndUpdate(post.id, {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.json({ post, errors: errors.array() });
+    }
+
+    const updatedPost = await prisma.post.update({
+      where: { id: post.id },
+
+      data: {
         title: req.body.title,
         text: req.body.text,
         isPublished: req.body.isPublished,
-        _id: req.params.postId,
-      }).exec(); 
+      },
+    });
 
-      post = await Post.findById(post.id).exec();
-    }
-
-    const response = { post, errors: errors ? errors.array() : [] };
-    return res.json(response);
+    return res.json({ post: updatedPost, errors: null });
   }),
 ];
 
@@ -116,17 +113,16 @@ exports.deletePost = [
       return next(err);
     }
 
-    const [post, comments] = await Promise.all([
-      Post.findById(req.params.postId).exec(),
-      Comment.find({ post: req.params.postId }).exec(),
+    const [post] = await Promise.all([
+      prisma.post.delete({
+        where: { id: parseInt(req.params.postId, 10) },
+      }),
+
+      prisma.comment.deleteMany({
+        where: { postId: parseInt(req.params.postId, 10) },
+      }),
     ]);
 
-    await Promise.all([
-      Post.findByIdAndDelete(req.params.postId).exec(),
-      Comment.deleteMany({ post: req.params.postId }).exec(),
-    ]);
-
-    const response = { post, comments };
-    return res.json(response);
+    return res.json({ post });
   }),
 ];

@@ -13,57 +13,48 @@ function PostPage() {
   useEffect(() => {
     fetch(`http://localhost:3000/posts/${postId}`, { mode: 'cors' })
       .then((response) => response.json())
+
       .then((response) => {
         setPost(response.post);
         setComments(response.comments);
-      })
-      .catch((error) => {
-        throw new Error(error);
       });
 
     if (localStorage.getItem('token')) {
       fetch('http://localhost:3000/auth/user', {
         method: 'POST',
         mode: 'cors',
+
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',
         },
+
         body: JSON.stringify({ token: localStorage.getItem('token') }),
       })
         .then((response) => response.json())
-        .then((response) => {
-          setUser(response);
-        })
-        .catch((error) => {
-          throw new Error(error);
-        });
+        .then((response) => setUser(response.user));
     }
   }, [postId]);
 
   async function submitComment(e) {
     e.preventDefault();
 
-    try {
-      const response = await fetch(
-        `http://localhost:3000/posts/${postId}/comments`,
-        {
-          method: 'POST',
-          mode: 'cors',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text: e.target[0].value }),
+    const response = await fetch(
+      `http://localhost:3000/posts/${postId}/comments`,
+      {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({ text: e.target[0].value }),
+      },
+    );
 
-      const responseJson = await response.json();
-      setComments(responseJson.comments);
-      e.target.reset();
-    } catch (err) {
-      throw new Error(err);
-    }
+    const responseJson = await response.json();
+    setComments([...comments, responseJson.comment]);
+    e.target.reset();
   }
 
   function renderPost() {
@@ -74,7 +65,7 @@ function PostPage() {
             title={post.title}
             timestamp={post.timestamp}
             text={post.text}
-            key={post._id}
+            key={post.id}
           />
         </>
       );
@@ -106,9 +97,10 @@ function PostPage() {
                 timestamp={comment.timestamp}
                 text={comment.text}
                 postId={postId}
-                commentId={comment._id}
-                key={comment._id}
+                commentId={comment.id}
+                key={comment.id}
                 setComments={(c) => setComments(c)}
+                comments={comments}
               />
             ))}
           </div>

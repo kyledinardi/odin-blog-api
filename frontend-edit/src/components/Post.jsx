@@ -15,65 +15,42 @@ function Post({
 }) {
   const [isEdit, setIsEdit] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const date = new Date(timestamp);
   const navigate = useNavigate();
-
-  function decodeHTMLEntities(html) {
-    const txt = document.createElement('textarea');
-    txt.innerHTML = html;
-    return txt.value;
-  }
-
-  const decodedTitle = decodeHTMLEntities(title);
-  const decodedText = decodeHTMLEntities(text);
-
-  const formattedDate = new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(date);
-
+  
   async function updatePost(e) {
     e.preventDefault();
 
-    try {
-      const response = await fetch(`http://localhost:3000/posts/${postId}`, {
-        method: 'PUT',
-        mode: 'cors',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: e.target[0].value,
-          isPublished: e.target[1].checked,
-          text: e.target[2].value,
-        }),
-      });
+    const response = await fetch(`http://localhost:3000/posts/${postId}`, {
+      method: 'PUT',
+      mode: 'cors',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: e.target[0].value,
+        isPublished: e.target[1].checked,
+        text: e.target[2].value,
+      }),
+    });
 
-      const responseJson = await response.json();
-      setIsEdit(false);
-      setPost(responseJson.post);
-    } catch (err) {
-      throw new Error(err);
-    }
+    const responseJson = await response.json();
+    setIsEdit(false);
+    setPost(responseJson.post);
   }
 
   async function deletePost() {
-    try {
-      const response = await fetch(`http://localhost:3000/posts/${postId}`, {
-        method: 'DELETE',
-        mode: 'cors',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
+    const response = await fetch(`http://localhost:3000/posts/${postId}`, {
+      method: 'DELETE',
+      mode: 'cors',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-      await response.json();
-      navigate('/');
-    } catch (err) {
-      throw new Error(err);
-    }
+    await response.json();
+    navigate('/');
   }
 
   if (isEdit) {
@@ -86,7 +63,7 @@ function Post({
             name='title'
             id='title'
             required
-            defaultValue={decodedTitle}
+            defaultValue={title}
           />
           <label htmlFor='isPublished'>Published</label>
           <input
@@ -102,7 +79,7 @@ function Post({
           cols='30'
           rows='10'
           required
-          defaultValue={decodedText}
+          defaultValue={text}
         ></textarea>
         <button type='button' onClick={() => setIsEdit(!isEdit)}>
           Cancel
@@ -114,10 +91,10 @@ function Post({
 
   return (
     <div className={styles.post}>
-      <h2 className={styles.title}>{decodedTitle}</h2>
-      <p className={styles.timestamp}> {formattedDate}</p>
+      <h2 className={styles.title}>{title}</h2>
+      <p className={styles.timestamp}>{new Date(timestamp).toLocaleString()}</p>
       <p>{isPublished ? 'Published' : 'Not Published'}</p>
-      <p>{decodedText}</p>
+      <p>{text}</p>
       {!isHome && (
         <div>
           <button onClick={() => setIsEdit(true)}>Edit</button>

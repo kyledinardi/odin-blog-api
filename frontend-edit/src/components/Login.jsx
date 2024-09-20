@@ -16,34 +16,29 @@ function Login() {
   async function submit(e) {
     e.preventDefault();
 
-    const data = {
-      email: e.target[0].value,
-      password: e.target[1].value,
-    };
+    const response = await fetch('http://localhost:3000/auth/login', {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
 
-    try {
-      const response = await fetch('http://localhost:3000/auth/login', {
-        method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      body: JSON.stringify({
+        email: e.target[0].value,
+        password: e.target[1].value,
+      }),
+    });
 
-      const responseJson = await response.json();
-      localStorage.setItem('token', responseJson.token);
-      e.target.reset();
+    const responseJson = await response.json();
+    localStorage.setItem('token', responseJson.token);
+    e.target.reset();
 
-      if (responseJson.error) {
-        setError(responseJson.error);
-      } else if (!responseJson.user.isAdmin) {
-        setError({ message: 'You must be an Admin to login' });
-      } else {
-        setError(false);
-        setIsAuth(true);
-        navigate('/');
-      }
-    } catch (err) {
-      console.error(err);
+    if (responseJson.error) {
+      setError(responseJson.error);
+    } else if (!responseJson.user.isAdmin) {
+      setError({ message: 'You must be an Admin to log in' });
+    } else {
+      setError(null);
+      setIsAuth(true);
+      navigate('/');
     }
   }
 

@@ -6,12 +6,10 @@
   },
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "devstart": "nodemon -L ./bin/www",
-    "serverstart": "DEBUG=odin-blog-api:* npm run devstart",
-    "amend": "git commit --amend --no-edit"
+    "start": "node --watch ./bin/www"
   },
   "dependencies": {
+    "@prisma/client": "^5.19.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cookie-parser": "~1.4.4",
@@ -25,18 +23,17 @@
     "helmet": "^7.1.0",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.4.1",
     "morgan": "~1.9.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "passport-local": "^1.0.0",
-    "pug": "2.0.0-beta11"
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.7",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1"
+    "eslint-plugin-import": "^2.29.1",
+    "prisma": "^5.19.1"
   }
 }

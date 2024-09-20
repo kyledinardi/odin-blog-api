@@ -10,6 +10,7 @@ function Comment({
   postId,
   commentId,
   setComments,
+  comments,
 }) {
   const [isEdit, setIsEdit] = useState(false);
   const date = new Date(timestamp);
@@ -29,48 +30,52 @@ function Comment({
 
   async function updateComment(e) {
     e.preventDefault();
-    try {
-      const response = await fetch(
-        `http://localhost:3000/posts/${postId}/comments/${commentId}`,
-        {
-          method: 'PUT',
-          mode: 'cors',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text: e.target[0].value }),
-        },
-      );
 
-      const responseJson = await response.json();
-      const { comments } = responseJson;
-      setComments(comments);
-      setIsEdit(!isEdit);
-    } catch (err) {
-      throw new Error(err);
-    }
+    const response = await fetch(
+      `http://localhost:3000/posts/${postId}/comments/${commentId}`,
+      {
+        method: 'PUT',
+        mode: 'cors',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: e.target[0].value }),
+      },
+    );
+
+    const responseJson = await response.json();
+    setIsEdit(!isEdit);
+
+    setComments(
+      comments.map((comment) => {
+        if (comment.id === responseJson.comment.id) {
+          return responseJson.comment;
+        }
+
+        return comment;
+      }),
+    );
   }
 
   async function deleteComment() {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/posts/${postId}/comments/${commentId}`,
-        {
-          method: 'DELETE',
-          mode: 'cors',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
+    const response = await fetch(
+      `http://localhost:3000/posts/${postId}/comments/${commentId}`,
+      {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
         },
-      );
+      },
+    );
 
-      const comments = await response.json();
-      setComments(comments);
-    } catch (err) {
-      throw new Error(err);
-    }
+    const responseJson = await response.json();
+
+    setComments(
+      comments.filter((comment) => comment.id !== responseJson.comment.id),
+    );
   }
 
   function renderButtons() {
@@ -91,6 +96,8 @@ function Comment({
 
     return null;
   }
+
+  console.log(commenter);
 
   return (
     <div className={styles.comment}>
@@ -124,8 +131,9 @@ Comment.propTypes = {
   timestamp: PropTypes.string,
   text: PropTypes.string,
   postId: PropTypes.string,
-  commentId: PropTypes.string,
+  commentId: PropTypes.number,
   setComments: PropTypes.func,
+  comments: PropTypes.array,
 };
 
 export default Comment;

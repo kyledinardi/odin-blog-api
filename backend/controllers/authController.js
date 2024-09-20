@@ -3,53 +3,59 @@ const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
-const User = require('../models/user');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 exports.createUser = [
   asyncHandler(
     body('email')
       .trim()
-      .escape()
-      .isLength({ min: 1 })
+      .notEmpty()
       .withMessage('Email must not be empty')
       .isEmail()
       .withMessage('Email must be a valid email address')
+
       .custom(async (value) => {
-        const emailInDatabase = await User.findOne({ email: value }).exec();
+        const emailInDatabase = await prisma.user.findUnique({
+          where: { email: value },
+        });
+
         if (emailInDatabase) {
           throw new Error('A user already exists with this email address');
         }
       }),
   ),
-  body('password', 'Password must not be empty')
-    .trim()
-    .escape()
-    .isLength({ min: 1 }),
+
+  body('password', 'Password must not be empty').trim().notEmpty(),
+
   body('passwordConfirmation', 'Passwords did not match')
     .trim()
-    .escape()
     .custom((value, { req }) => value === req.body.password),
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.json({
+        user: { email: req.body.email, password: req.body.password },
+        errors: errors.array(),
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-    const user = new User({
-      email: req.body.email,
-      password: hashedPassword,
+    const user = await prisma.user.create({
+      data: { email: req.body.email, passwordHash: hashedPassword },
     });
 
-    if (errors.isEmpty()) {
-      await user.save();
-    }
-    const response = { user, errors: errors ? errors.array() : [] };
-    res.json(response);
+    return res.json({ user, errors: null });
   }),
 ];
 
 exports.login = (req, res, next) => [
-  body('email').trim().escape(),
-  body('password').trim().escape(),
+  body('email').trim(),
+  body('password').trim(),
 
   passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err || !user) {
@@ -80,8 +86,5 @@ exports.login = (req, res, next) => [
   })(req, res, next),
 ];
 
-exports.getUser = (req, res, next) => {
-  console.log(req.body.token);
-  const user = jwt.verify(req.body.token, process.env.JWT_SECRET);
-  res.json(user);
-};
+exports.getUser = (req, res, next) =>
+  res.json({ user: jwt.verify(req.body.token, process.env.JWT_SECRET) });

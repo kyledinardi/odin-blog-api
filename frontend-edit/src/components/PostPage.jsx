@@ -9,12 +9,7 @@ function PostPage() {
   useEffect(() => {
     fetch(`http://localhost:3000/posts/${postId}`, { mode: 'cors' })
       .then((response) => response.json())
-      .then((response) => {
-        setPost(response.post);
-      })
-      .catch((error) => {
-        throw new Error(error);
-      });
+      .then((response) => setPost(response.post));
   }, [postId]);
 
   function renderPost() {
